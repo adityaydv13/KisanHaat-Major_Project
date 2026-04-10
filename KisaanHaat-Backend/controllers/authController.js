@@ -1,0 +1,197 @@
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+ 
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+console.log("Backend Google Client ID:", process.env.GOOGLE_CLIENT_ID);
+
+exports.googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub } = payload;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
+        name,
+        email,
+        password: sub, // placeholder
+        role: "farmer", // default role
+      });
+      await user.save();
+    }
+
+    // const appToken = jwt.sign(
+    //   { id: user._id, email: user.email, role: user.role },
+    //   process.env.JWT_SECRET,
+    //   { expiresIn: "7d" }
+    // );
+    const appToken = jwt.sign(
+  {
+    userId: user._id,
+    name: user.name,
+    role: user.role
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
+    res.json({ user, token: appToken });
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    res.status(401).json({ message: "Google authentication failed" });
+  }
+};
+
+//  user registration 
+exports.register = async (req, res) => {
+  const { name, email, password, role } = req.body;
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: 'User already exists' });
+     if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables!");
+}
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({ name, email, password: hashedPassword, role });
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+   
+
+    res.status(201).json({
+      token,
+      role: user.role,
+      user: { _id: user._id, name: user.name, email: user.email }
+    });
+  } catch (error) {
+    console.error("Register error:", error);  // <-- log full error
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// User login
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'User not found' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+    const token = jwt.sign({ userId: user._id, role: user.role,name:user.name }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+     // ✅ Include user object in response
+    res.status(200).json({
+      token,
+      role: user.role,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+    console.log("Login successful for user:", token);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const { email, password } = req.body;
+  const userId = req.user.userId; // Extract userId from the token
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update email if provided
+    if (email) {
+      // Check if the new email is already in use by another user
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+      user.email = email;
+    }
+
+    // Update password if provided
+    if (password) {
+      // Hash the new password
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+exports.getUser = async (req, res) => {
+  const userId = req.user.userId; // Extract userId from the token
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId).select('-password'); // Exclude password from response
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+exports.deleteUser = async (req, res) => {
+  try {
+    // 1️⃣ Find the user to delete
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2️⃣ Make sure req.user exists (from auth middleware)
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    // 3️⃣ Check if the logged-in user is deleting their own account
+    // if (user._id.toString() !== req.user._id.toString()) {
+    //   return res.status(403).json({ message: "Not authorized" });
+    // }
+
+    // 4️⃣ Delete the user
+    await user.deleteOne();
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+

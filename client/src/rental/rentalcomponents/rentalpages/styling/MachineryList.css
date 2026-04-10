@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Main Container */
+.machine-list-container {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    width: 95%;
+    max-width: 900px;
+    margin: 60px auto;
+    background: #0f172a;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    color: #f8fafc;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle background glow effect */
+.machine-list-container::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 300px;
+    height: 300px;
+    background: rgba(16, 185, 129, 0.15);
+    filter: blur(80px);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Titles */
+.machine-list-container h2 {
+    text-align: center;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+}
+
+.machine-list-container h3 {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin-top: 50px;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Form Styling */
+.machine-list-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    background: rgba(30, 41, 59, 0.7);
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.machine-list-form textarea {
+    grid-column: 1 / -1;
+    min-height: 120px;
+    resize: vertical;
+}
+
+.machine-list-form button {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+    .machine-list-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Input Fields */
+.machine-list-form input,
+.machine-list-form textarea {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 15px;
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    outline: none;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.machine-list-form input::placeholder,
+.machine-list-form textarea::placeholder {
+    color: #64748b;
+}
+
+.machine-list-form input:focus,
+.machine-list-form textarea:focus {
+    border-color: #10b981;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Submit Button */
+.machine-list-form button[type="submit"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    margin-top: 10px;
+}
+
+.machine-list-form button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.machine-list-form button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Machine List */
+.machine-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 20px;
+}
+
+/* Machine Item Card */
+.machine-item {
+    background: rgba(30, 41, 59, 0.7);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    backdrop-filter: blur(10px);
+    font-size: 15px;
+    color: #94a3b8;
+}
+
+.machine-item:hover {
+    transform: translateY(-4px);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.machine-item strong {
+    font-size: 18px;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.machine-item p {
+    margin: 4px 0 16px 0;
+    color: #cbd5e1;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+/* Delete Button */
+.machine-item button {
+    align-self: flex-start;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.machine-item button:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
